@@ -22,28 +22,35 @@ async def main() -> None:
         asyncio.create_task(service.register_device(toilet))
     )
 
-    # create a few programs
-    wake_up_program = [
-        Message(hue_light_id, MessageType.SWITCH_ON),
-        Message(speaker_id, MessageType.SWITCH_ON),
-        Message(
-            speaker_id,
-            MessageType.PLAY_SONG,
-            "Rick Astley - Never Gonna Give You Up"
-        ),
-    ]
-
-    sleep_program = [
-        Message(hue_light_id, MessageType.SWITCH_OFF),
-        Message(speaker_id, MessageType.SWITCH_OFF),
-        Message(toilet_id, MessageType.FLUSH),
-        Message(toilet_id, MessageType.CLEAN),
-    ]
-
     # run the programs
     await sequence_handling(
-        service.run_program(wake_up_program),
-        service.run_program(sleep_program),
+        service.run_program(
+            [
+                Message(hue_light_id, MessageType.SWITCH_ON),
+                Message(speaker_id, MessageType.SWITCH_ON)
+            ]
+        ),
+        service.run_program(
+            [
+                Message(
+                    speaker_id,
+                    MessageType.PLAY_SONG,
+                    "Rick Astley - Never Gonna Give You Up"
+                )
+            ]
+        ),
+        service.run_program(
+            [
+                Message(hue_light_id, MessageType.SWITCH_OFF),
+                Message(speaker_id, MessageType.SWITCH_OFF),
+                Message(toilet_id, MessageType.FLUSH)
+            ]
+        ),
+        service.run_program(
+            [
+                Message(toilet_id, MessageType.CLEAN),
+            ]
+        ),
     )
 
 
