@@ -1,5 +1,6 @@
 import asyncio
 import time
+from typing import Awaitable, Any
 
 from iot.devices import HueLightDevice, SmartSpeakerDevice, SmartToiletDevice
 from iot.message import Message, MessageType
@@ -15,7 +16,7 @@ async def main() -> None:
     speaker = SmartSpeakerDevice()
     toilet = SmartToiletDevice()
 
-    hue_light_id, speaker_id, toilet_id = await asyncio.gather(
+    hue_light_id, speaker_id, toilet_id = await parallel_handling(
         asyncio.create_task(service.register_device(hue_light)),
         asyncio.create_task(service.register_device(speaker)),
         asyncio.create_task(service.register_device(toilet))
@@ -39,9 +40,20 @@ async def main() -> None:
         Message(toilet_id, MessageType.CLEAN),
     ]
 
-    # # run the programs
-    await asyncio.create_task(service.run_program(wake_up_program))
-    await asyncio.create_task(service.run_program(sleep_program))
+    # run the programs
+    await sequence_handling(
+        service.run_program(wake_up_program),
+        service.run_program(sleep_program),
+    )
+
+
+async def parallel_handling(*services: Awaitable[Any]) -> tuple:
+    return await asyncio.gather(*services)
+
+
+async def sequence_handling(*services: Awaitable[Any]) -> None:
+    for service in services:
+        await service
 
 
 if __name__ == "__main__":
